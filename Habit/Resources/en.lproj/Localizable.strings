@@ -1,0 +1,9 @@
+/* 
+  Localizable.strings
+  Habit
+
+  Created by Andrei Krotov on 20/05/2023.
+  
+*/
+
+"habit.editing.initial.name" = "New Habit";
