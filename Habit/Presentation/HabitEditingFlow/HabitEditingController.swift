@@ -44,8 +44,8 @@ final class HabitEditingController: CoordinatableViewController {
 
         super.init(nibName: nil, bundle: nil)
 
-//        modalPresentationStyle = .overFullScreen
-        modalPresentationStyle = .fullScreen
+        modalPresentationStyle = .overFullScreen
+//        modalPresentationStyle = .fullScreen
     }
 
     required init?(coder: NSCoder) {

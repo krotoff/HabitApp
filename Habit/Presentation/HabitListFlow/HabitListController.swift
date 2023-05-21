@@ -21,8 +21,6 @@ final class HabitListController: CoordinatableViewController {
 
     // MARK: - Private properties
 
-//    private let backgroundView = UIImageView(image: Asset.Images.backgroundGradient.image)
-    private let backgroundView = UIImageView()
     private let collectionViewLayout = UICollectionViewFlowLayout()
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: collectionViewLayout)
 
@@ -38,7 +36,6 @@ final class HabitListController: CoordinatableViewController {
         self.viewModel.subscribeForEvents { [weak self] event in
             switch event {
             case .update:
-                print("utah debug", self?.viewModel.models)
                 self?.collectionView.reloadData()
             }
         }
@@ -63,10 +60,15 @@ final class HabitListController: CoordinatableViewController {
     // MARK: - Private methods
 
     private func setupUI() {
-        [backgroundView, collectionView, addButton].forEach(view.addSubview)
+        [collectionView, addButton].forEach(view.addSubview)
+
         collectionView.contentInsetAdjustmentBehavior = .always
         collectionView.showsVerticalScrollIndicator = false
         collectionView.backgroundColor = Asset.Colors.background.color
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(UserHabitCell.self, forCellWithReuseIdentifier: "UserHabitCell")
+        collectionViewLayout.minimumLineSpacing = 16
 
         addButton.contentMode = .scaleAspectFit
         addButton.backgroundColor = Asset.Colors.secondary.color
@@ -76,26 +78,19 @@ final class HabitListController: CoordinatableViewController {
         addButton.layer.shadowOffset = .init(width: 0, height: 4)
         addButton.layer.shadowRadius = 5
         addButton.layer.shadowOpacity = 0.5
-        addButton.defaultShadowOpacity = 0.5
+        addButton.defaultShadowOpacity = addButton.layer.shadowOpacity
+        addButton.addTarget(self, action: #selector(tappedAdd), for: .touchUpInside)
 
-        backgroundView
-            .align(with: view)
         collectionView
             .align(with: view)
         addButton
             .align(with: view, edges: [.right, .bottom], insets: .init(top: 0, left: 0, bottom: 64, right: 16))
             .equalsSize(to: .init(width: 48, height: 48))
-
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.register(UserHabitCell.self, forCellWithReuseIdentifier: "UserHabitCell")
-        collectionViewLayout.minimumLineSpacing = 16
-
-        addButton.addTarget(self, action: #selector(tappedAdd), for: .touchUpInside)
     }
 
     @objc private func tappedAdd() {
-        viewModel.tappedAdding()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        viewModel.tappedAdding(sourceView: addButton)
     }
 }
 
@@ -122,10 +117,11 @@ extension HabitListController: UICollectionViewDelegateFlowLayout {
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        .init(width: collectionView.bounds.width - 32, height: 64)
+        .init(width: collectionView.bounds.width - 32, height: 48)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        viewModel.models[indexPath.item].action?()
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        viewModel.models[indexPath.item].action?(collectionView.cellForItem(at: indexPath)!)
     }
 }

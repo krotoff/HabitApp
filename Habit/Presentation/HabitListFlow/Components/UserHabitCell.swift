@@ -16,7 +16,7 @@ final class UserHabitCell: BouncableCollectionCell {
 
     struct Model {
         var name: String
-        var action: (() -> Void)?
+        var action: ((UIView) -> Void)?
     }
 
     // MARK: - Private types

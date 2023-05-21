@@ -6,13 +6,14 @@
 //
 
 import Foundation.NSDate
+import UIKit.UIView
 
 final class HabitListViewModel {
 
     // MARK: - Internal types
 
     enum RouteKind {
-        case editing(UserHabit?)
+        case editing(UIView, UserHabit?)
     }
 
     enum LogicEventKind {
@@ -49,19 +50,19 @@ final class HabitListViewModel {
         models = userHabitsService.habits.map { habit in
                 .init(
                     name: habit.name,
-                    action: { [weak self] in self?.tappedEditing(habit: habit) }
+                    action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) }
                 )
         }
         logicListener?(.update)
     }
 
-    func tappedAdding() {
-        routeListener(.editing(nil))
+    func tappedAdding(sourceView: UIView) {
+        routeListener(.editing(sourceView, nil))
     }
 
     // MARK: - Private methods
 
-    func tappedEditing(habit: UserHabit) {
-        routeListener(.editing(habit))
+    func tappedEditing(sourceView: UIView, habit: UserHabit) {
+        routeListener(.editing(sourceView, habit))
     }
 }

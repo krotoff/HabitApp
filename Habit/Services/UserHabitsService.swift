@@ -18,7 +18,11 @@ final class UserHabitsService: UserHabitsServiceType {
 
     // MARK: - Internal properties
 
-    var habits = [UserHabit]()
+    var habits: [UserHabit] = [
+        .init(id: "some1", name: "Habit #1"),
+        .init(id: "some2", name: "Habit #2"),
+        .init(id: "some3", name: "Habit #3"),
+    ]
 
     // MARK: - Private properties
 
