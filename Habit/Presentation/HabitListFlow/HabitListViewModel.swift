@@ -33,6 +33,23 @@ final class HabitListViewModel {
     private let routeListener: ((RouteKind) -> Void)
     private var logicListener: ((LogicEventKind) -> Void)?
 
+    private let onlyTimeDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .none
+        formatter.timeStyle = .short
+
+        return formatter
+    }()
+
+    private let wholeDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.doesRelativeDateFormatting = true
+
+        return formatter
+    }()
+
     // MARK: - Init
 
     init(userHabitsService: UserHabitsServiceType, routeListener: @escaping ((RouteKind) -> Void)) {
@@ -47,11 +64,15 @@ final class HabitListViewModel {
     }
 
     func updateModels() {
+        let now = Date().midnight
+
         models = userHabitsService.habits.map { habit in
-                .init(
-                    name: habit.name,
-                    action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) }
-                )
+            let nextDate = Date(timeInterval: habit.timesForPeriod[0].timeIntervalToAdd, since: now)
+            return .init(
+                name: habit.name,
+                nextDate: wholeDateFormatter.string(from: nextDate),
+                action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) }
+            )
         }
         logicListener?(.update)
     }

@@ -16,28 +16,61 @@ final class UserHabitCell: BouncableCollectionCell {
 
     struct Model {
         var name: String
+        var nextDate: String
         var action: ((UIView) -> Void)?
     }
 
     // MARK: - Private types
 
     private struct Constants {
-        static let labelInset: CGFloat = 16
+        static let labelInsetX: CGFloat = 16
+        static let labelInsetY: CGFloat = 8
+        static let buttonWidth: CGFloat = 52
     }
 
     // MARK: - Internal properties
 
-    static let cellHeight: CGFloat = 48
+    static let cellHeight: CGFloat = 52
 
     // MARK: - Private properties
 
     private let nameLabel: UILabel = {
         let label = UILabel()
         label.textColor = Asset.Colors.text1.color
-        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.font = .systemFont(ofSize: 20, weight: .semibold)
 
         return label
     }()
+
+    private let dateLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = Asset.Colors.text1.color.withAlphaComponent(0.8)
+        label.font = .systemFont(ofSize: 14)
+
+        return label
+    }()
+
+    private let mainView = UIView()
+    private lazy var mainStackView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [mainView, rightButton])
+        view.axis = .horizontal
+        view.distribution = .fill
+        view.alignment = .fill
+        view.spacing = 8
+
+        return view
+    }()
+    private lazy var labelsStackView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [nameLabel, dateLabel])
+        view.axis = .vertical
+        view.distribution = .equalSpacing
+        view.alignment = .fill
+        view.spacing = 0
+
+        return view
+    }()
+
+    private let rightButton = BouncableButton()
 
     // MARK: - Init
 
@@ -53,8 +86,11 @@ final class UserHabitCell: BouncableCollectionCell {
 
     // MARK: - Internal methods
 
+    override func viewToScale() -> UIView { mainView }
+
     func configure(with model: Model) {
         nameLabel.text = model.name
+        dateLabel.text = model.nextDate
     }
 
     // MARK: - Private methods
@@ -62,21 +98,103 @@ final class UserHabitCell: BouncableCollectionCell {
     private func setupUI() {
         defaultShadowOpacity = 0.5
         bounceScale = 0.98
-        backgroundColor = Asset.Colors.secondary.color
-        layer.cornerRadius = 8
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOffset = .init(width: 0, height: 4)
-        layer.shadowRadius = 5
-        layer.shadowOpacity = defaultShadowOpacity
 
-        addSubview(nameLabel)
+        backgroundColor = .clear
+        [mainView, rightButton].forEach {
+            $0.layer.shadowColor = UIColor.black.cgColor
+            $0.layer.shadowOffset = .init(width: 0, height: 4)
+            $0.layer.shadowRadius = 5
+            $0.layer.shadowOpacity = defaultShadowOpacity
+        }
 
-        nameLabel
-            .align(
-                with: self,
-                edges: [.left, .right],
-                insets: .init(top: 0, left: Constants.labelInset, bottom: 0, right: Constants.labelInset)
-            )
-            .centerVertically(with: self)
+        mainView.layer.cornerRadius = 8
+        mainView.backgroundColor = Asset.Colors.secondary.color
+
+        rightButton.layer.cornerRadius = 8
+        rightButton.backgroundColor = Asset.Colors.failure.color
+        rightButton.setImage(Asset.Images.close.image, for: .normal)
+        rightButton.isHidden = true
+
+        [mainStackView].forEach(addSubview)
+        [labelsStackView].forEach(mainView.addSubview)
+
+        mainStackView
+            .align(with: self)
+        labelsStackView
+            .align(with: mainView, insets: .init(
+                top: Constants.labelInsetY,
+                left: Constants.labelInsetX,
+                bottom: Constants.labelInsetY,
+                right: Constants.labelInsetX
+            ))
+        rightButton
+            .equalsHeightToWidth()
+
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
+        panGesture.delegate = self
+        addGestureRecognizer(panGesture)
+    }
+
+    @objc private func handlePan(_ sender: UIPanGestureRecognizer) {
+        let velocity = sender.velocity(in: self)
+        let directionIsLeft = velocity.x < 0
+        let buttonIsHidden = rightButton.isHidden
+        let areLeftDirectionChangesNeeded = directionIsLeft && buttonIsHidden
+        let areRightDirectionChangesNeeded = !directionIsLeft && !buttonIsHidden
+        if areLeftDirectionChangesNeeded || areRightDirectionChangesNeeded {
+            switchButtonsVisiblity(isVisible: directionIsLeft)
+//            cellWasPanned?() // reset other cells here
+        }
+    }
+
+    private func switchButtonsVisiblity(isVisible: Bool) {
+        UIView.animate(
+            withDuration: 0.3,
+            delay: 0,
+            options: [.curveEaseInOut],
+            animations: {
+                self.rightButton.alpha = isVisible ? 1 : 0
+                self.rightButton.isHidden = !isVisible
+                self.mainStackView.layoutIfNeeded()
+            },
+            completion: { finished in
+                guard finished else { return }
+
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
+        )
+    }
+}
+
+extension UserHabitCell: UIGestureRecognizerDelegate {
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        gestureRecognizerShouldBeginForSwipableCell(gestureRecognizer: gestureRecognizer)
+    }
+
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        otherGestureRecognizer is UISwipeGestureRecognizer || otherGestureRecognizer is UIScreenEdgePanGestureRecognizer
+    }
+}
+
+
+public extension UICollectionReusableView {
+
+    // MARK: - Public properties
+
+    static var reuseIdentifier: String { return String(describing: self) }
+    static var bundle: Bundle { return Bundle(for: Self.self) }
+
+    // MARK: - Public methods
+
+    func gestureRecognizerShouldBeginForSwipableCell(gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if let recognizer = gestureRecognizer as? UIPanGestureRecognizer {
+            let velocity = recognizer.velocity(in: self)
+            return abs(velocity.y) < abs(velocity.x)
+        }
+
+        return true
     }
 }

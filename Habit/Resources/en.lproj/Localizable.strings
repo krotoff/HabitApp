@@ -7,3 +7,5 @@
 */
 
 "habit.editing.initial.name" = "New Habit";
+"habit.editing.header.name" = "Name";
+"habit.editing.header.time" = "Time";

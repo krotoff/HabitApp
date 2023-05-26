@@ -62,7 +62,7 @@ final class HabitEditingCoordinator: Coordinator {
             let presenting = controller.presentingViewController as? HabitListController,
             var viewToAnimate = controller.view.snapshotView(afterScreenUpdates: false)
         else { return }
-
+        
         viewToAnimate = UIView()
         viewToAnimate.backgroundColor = controller.view.backgroundColor
         viewToAnimate.layer.masksToBounds = true

@@ -26,14 +26,10 @@ final class HabitEditingController: CoordinatableViewController {
 
     private let closeButton = BouncableButton()
 
-    private let nameTextField: UITextField = {
-        let field = UITextField()
-        field.textColor = Asset.Colors.text1.color
-        field.font = .systemFont(ofSize: 24, weight: .bold)
-
-        return field
-    }()
-    private let nameTextFieldUnderlineView = UIView()
+    private lazy var nameTextField = UnderlinedTextFieldWithHeader(
+        title: L10n.Habit.Editing.Header.name,
+        text: viewModel.model.name
+    )
 
     private let viewModel: HabitEditingViewModel
 
@@ -64,17 +60,11 @@ final class HabitEditingController: CoordinatableViewController {
     private func setupUI() {
         view.backgroundColor = Asset.Colors.secondary.color
 
-        [closeButton, nameTextField, nameTextFieldUnderlineView].forEach(view.addSubview)
+        [closeButton, nameTextField].forEach(view.addSubview)
 
         closeButton.setImage(Asset.Images.close.image, for: .normal)
 
-        nameTextField.text = viewModel.model.name
-        nameTextField.delegate = self
-        nameTextField.backgroundColor = .clear
-        nameTextField.tintColor = Asset.Colors.text1.color.withAlphaComponent(0.5)
-
-        nameTextFieldUnderlineView.backgroundColor = Asset.Colors.text1.color.withAlphaComponent(0.5)
-        nameTextFieldUnderlineView.layer.cornerRadius = Constants.separatorHeight / 2
+        nameTextField.setTextFieldDelegate(self)
 
         closeButton
             .align(
@@ -91,9 +81,6 @@ final class HabitEditingController: CoordinatableViewController {
                 insets: .init(top: 0, left: Constants.textFieldInset, bottom: 0, right: Constants.textFieldInset)
             )
             .spacingToBottom(of: closeButton)
-        nameTextFieldUnderlineView
-            .align(with: nameTextField, edges: [.left, .right, .bottom])
-            .equalsHeight(to: Constants.separatorHeight)
 
         closeButton.addTarget(self, action: #selector(tappedClose), for: .touchUpInside)
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tappedAnywhere))

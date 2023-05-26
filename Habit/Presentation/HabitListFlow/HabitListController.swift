@@ -18,7 +18,7 @@ final class HabitListController: CoordinatableViewController {
     // MARK: - Internal properties
 
     let addButton = BouncableButton()
-
+    
     // MARK: - Private properties
 
     private let collectionViewLayout = UICollectionViewFlowLayout()
@@ -62,18 +62,23 @@ final class HabitListController: CoordinatableViewController {
     private func setupUI() {
         [collectionView, addButton].forEach(view.addSubview)
 
+        collectionView.contentInset = .init(top: 16, left: 16, bottom: 16, right: 16)
         collectionView.contentInsetAdjustmentBehavior = .always
         collectionView.showsVerticalScrollIndicator = false
         collectionView.backgroundColor = Asset.Colors.background.color
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(UserHabitCell.self, forCellWithReuseIdentifier: "UserHabitCell")
+        collectionView.register(
+            UserHabitListHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: "UserHabitListHeaderView"
+        )
+        collectionView.canCancelContentTouches = false
         collectionViewLayout.minimumLineSpacing = 16
 
         addButton.contentMode = .scaleAspectFit
-        addButton.backgroundColor = Asset.Colors.secondary.color
         addButton.setImage(Asset.Images.add.image, for: .normal)
-        addButton.layer.cornerRadius = 24
         addButton.layer.shadowColor = UIColor.black.cgColor
         addButton.layer.shadowOffset = .init(width: 0, height: 4)
         addButton.layer.shadowRadius = 5
@@ -85,7 +90,7 @@ final class HabitListController: CoordinatableViewController {
             .align(with: view)
         addButton
             .align(with: view, edges: [.right, .bottom], insets: .init(top: 0, left: 0, bottom: 64, right: 16))
-            .equalsSize(to: .init(width: 48, height: 48))
+            .equalsSize(to: .init(width: 64, height: 64))
     }
 
     @objc private func tappedAdd() {
@@ -117,11 +122,27 @@ extension HabitListController: UICollectionViewDelegateFlowLayout {
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        .init(width: collectionView.bounds.width - 32, height: 48)
+        .init(width: collectionView.bounds.width - 32, height: 64)
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        viewModel.models[indexPath.item].action?(collectionView.cellForItem(at: indexPath)!)
+        let cell = collectionView.cellForItem(at: indexPath) as? UserHabitCell
+        viewModel.models[indexPath.item].action?(cell!.viewToScale())
+    }
+
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        let view = collectionView.dequeueReusableSupplementaryView(
+            ofKind: kind,
+            withReuseIdentifier: "UserHabitListHeaderView",
+            for: indexPath
+        ) as! UserHabitListHeaderView
+        view.configure(text: "Exercises")
+
+        return view
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        .init(width: collectionView.bounds.width - 32, height: 64)
     }
 }
