@@ -73,7 +73,7 @@ final class HabitListViewModel {
                 id: habit.id,
                 name: habit.name,
                 nextDate: L10n.Next.time(wholeDateFormatter.string(from: nextDate)),
-                passedCount: 0,
+                passedCount: [0, 2, 10].randomElement()!,
                 totalCount: 10,
                 action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) },
                 deleteAction: { [weak self] in self?.tappedDelete(habitID: habit.id) }

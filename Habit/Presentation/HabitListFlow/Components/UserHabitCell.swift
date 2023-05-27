@@ -28,13 +28,12 @@ final class UserHabitCell: BouncableCollectionCell {
 
     private struct Constants {
         static let labelInsetX: CGFloat = 16
-        static let labelInsetY: CGFloat = 8
-        static let buttonWidth: CGFloat = 52
+        static let labelInsetY: CGFloat = 12
     }
 
     // MARK: - Internal properties
 
-    static let cellHeight: CGFloat = 52
+    static let cellHeight: CGFloat = 64
 
     // MARK: - Private properties
 
@@ -114,8 +113,25 @@ final class UserHabitCell: BouncableCollectionCell {
     func configure(with model: Model) {
         nameLabel.text = model.name
         dateLabel.text = model.nextDate
-        countLabel.text = "\(model.passedCount)/\(model.totalCount)"
         deleteAction = model.deleteAction
+
+        let passedString = String(model.passedCount)
+        let totalString = String(model.totalCount)
+        let isDone = model.passedCount == model.totalCount
+        let attributedText = NSMutableAttributedString(
+            string: [passedString, "/", totalString].joined(),
+            attributes: [
+                .font: UIFont.systemFont(ofSize: 20, weight: .bold),
+                .foregroundColor: (isDone ? Asset.Colors.success : Asset.Colors.text1).color
+            ])
+        if !isDone, model.passedCount > 0 {
+            attributedText.addAttribute(
+                .foregroundColor,
+                value: Asset.Colors.success.color,
+                range: (attributedText.string as NSString).range(of: passedString)
+            )
+        }
+        countLabel.attributedText = attributedText
     }
 
     func subscribeOnPanAction(_ completion: @escaping (() -> Void)) {
@@ -171,19 +187,14 @@ final class UserHabitCell: BouncableCollectionCell {
     }
 
     @objc private func handlePan(_ sender: UIPanGestureRecognizer) {
-        let velocity = sender.velocity(in: self)
-        let directionIsLeft = velocity.x < 0
-        let buttonIsHidden = rightButton.isHidden
-        let areLeftDirectionChangesNeeded = directionIsLeft && buttonIsHidden
-        let areRightDirectionChangesNeeded = !directionIsLeft && !buttonIsHidden
-        if areLeftDirectionChangesNeeded || areRightDirectionChangesNeeded {
-            switchButtonsVisiblity(isVisible: directionIsLeft)
-            cellWasPanned?()
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        }
+        switchButtonsVisiblity(isVisible: sender.velocity(in: self).x < 0)
+        cellWasPanned?()
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     private func switchButtonsVisiblity(isVisible: Bool) {
+        guard isVisible == rightButton.isHidden else { return }
+
         UIView.animate(
             withDuration: 0.3,
             delay: 0,
