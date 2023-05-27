@@ -18,6 +18,7 @@ final class HabitListViewModel {
 
     enum LogicEventKind {
         case update
+        case deleteCell(IndexPath)
     }
 
     // MARK: - Private types
@@ -69,9 +70,13 @@ final class HabitListViewModel {
         models = userHabitsService.habits.map { habit in
             let nextDate = Date(timeInterval: habit.timesForPeriod[0].timeIntervalToAdd, since: now)
             return .init(
+                id: habit.id,
                 name: habit.name,
-                nextDate: wholeDateFormatter.string(from: nextDate),
-                action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) }
+                nextDate: L10n.Next.time(wholeDateFormatter.string(from: nextDate)),
+                passedCount: 0,
+                totalCount: 10,
+                action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) },
+                deleteAction: { [weak self] in self?.tappedDelete(habitID: habit.id) }
             )
         }
         logicListener?(.update)
@@ -83,7 +88,14 @@ final class HabitListViewModel {
 
     // MARK: - Private methods
 
-    func tappedEditing(sourceView: UIView, habit: UserHabit) {
+    private func tappedEditing(sourceView: UIView, habit: UserHabit) {
         routeListener(.editing(sourceView, habit))
+    }
+
+    private func tappedDelete(habitID: String) {
+        guard let index = models.firstIndex(where: { $0.id == habitID }) else { return }
+
+        models.remove(at: index)
+        logicListener?(.deleteCell(IndexPath(item: index, section: 0)))
     }
 }

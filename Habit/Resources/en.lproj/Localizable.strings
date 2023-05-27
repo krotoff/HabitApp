@@ -9,3 +9,5 @@
 "habit.editing.initial.name" = "New Habit";
 "habit.editing.header.name" = "Name";
 "habit.editing.header.time" = "Time";
+"habit.list.header" = "Habits";
+"next.time" = "Next: %@";

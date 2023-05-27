@@ -15,9 +15,13 @@ final class UserHabitCell: BouncableCollectionCell {
     // MARK: - Internal types
 
     struct Model {
+        var id: String
         var name: String
         var nextDate: String
+        var passedCount: Int
+        var totalCount: Int
         var action: ((UIView) -> Void)?
+        var deleteAction: (() -> Void)?
     }
 
     // MARK: - Private types
@@ -60,6 +64,23 @@ final class UserHabitCell: BouncableCollectionCell {
 
         return view
     }()
+    private let countLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = Asset.Colors.text1.color
+        label.font = .systemFont(ofSize: 20, weight: .bold)
+        label.textAlignment = .right
+
+        return label
+    }()
+    private lazy var infoStackView: UIStackView = {
+        let view = UIStackView(arrangedSubviews: [labelsStackView, countLabel])
+        view.axis = .horizontal
+        view.distribution = .equalSpacing
+        view.alignment = .fill
+        view.spacing = 4
+
+        return view
+    }()
     private lazy var labelsStackView: UIStackView = {
         let view = UIStackView(arrangedSubviews: [nameLabel, dateLabel])
         view.axis = .vertical
@@ -71,6 +92,8 @@ final class UserHabitCell: BouncableCollectionCell {
     }()
 
     private let rightButton = BouncableButton()
+    private var deleteAction: (() -> Void)?
+    private var cellWasPanned: (() -> Void)?
 
     // MARK: - Init
 
@@ -91,6 +114,16 @@ final class UserHabitCell: BouncableCollectionCell {
     func configure(with model: Model) {
         nameLabel.text = model.name
         dateLabel.text = model.nextDate
+        countLabel.text = "\(model.passedCount)/\(model.totalCount)"
+        deleteAction = model.deleteAction
+    }
+
+    func subscribeOnPanAction(_ completion: @escaping (() -> Void)) {
+        cellWasPanned = completion
+    }
+
+    func reset() {
+        switchButtonsVisiblity(isVisible: false)
     }
 
     // MARK: - Private methods
@@ -116,11 +149,11 @@ final class UserHabitCell: BouncableCollectionCell {
         rightButton.isHidden = true
 
         [mainStackView].forEach(addSubview)
-        [labelsStackView].forEach(mainView.addSubview)
+        [infoStackView].forEach(mainView.addSubview)
 
         mainStackView
             .align(with: self)
-        labelsStackView
+        infoStackView
             .align(with: mainView, insets: .init(
                 top: Constants.labelInsetY,
                 left: Constants.labelInsetX,
@@ -129,6 +162,8 @@ final class UserHabitCell: BouncableCollectionCell {
             ))
         rightButton
             .equalsHeightToWidth()
+
+        rightButton.addTarget(self, action: #selector(deleteWasTapped), for: .touchUpInside)
 
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         panGesture.delegate = self
@@ -143,7 +178,8 @@ final class UserHabitCell: BouncableCollectionCell {
         let areRightDirectionChangesNeeded = !directionIsLeft && !buttonIsHidden
         if areLeftDirectionChangesNeeded || areRightDirectionChangesNeeded {
             switchButtonsVisiblity(isVisible: directionIsLeft)
-//            cellWasPanned?() // reset other cells here
+            cellWasPanned?()
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
     }
 
@@ -156,13 +192,13 @@ final class UserHabitCell: BouncableCollectionCell {
                 self.rightButton.alpha = isVisible ? 1 : 0
                 self.rightButton.isHidden = !isVisible
                 self.mainStackView.layoutIfNeeded()
-            },
-            completion: { finished in
-                guard finished else { return }
-
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }
         )
+    }
+
+    @objc private func deleteWasTapped() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        deleteAction?()
     }
 }
 

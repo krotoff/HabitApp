@@ -37,6 +37,8 @@ final class HabitListController: CoordinatableViewController {
             switch event {
             case .update:
                 self?.collectionView.reloadData()
+            case let .deleteCell(indexPath):
+                self?.collectionView.deleteItems(at: [indexPath])
             }
         }
     }
@@ -89,7 +91,12 @@ final class HabitListController: CoordinatableViewController {
         collectionView
             .align(with: view)
         addButton
-            .align(with: view, edges: [.right, .bottom], insets: .init(top: 0, left: 0, bottom: 64, right: 16))
+            .align(
+                with: view,
+                edges: [.right, .bottom],
+                insets: .init(top: 0, left: 0, bottom: 48, right: 16),
+                isInSafeArea: true
+            )
             .equalsSize(to: .init(width: 64, height: 64))
     }
 
@@ -111,6 +118,13 @@ extension HabitListController: UICollectionViewDataSource {
         let cell = collectionView
             .dequeueReusableCell(withReuseIdentifier: "UserHabitCell", for: indexPath) as! UserHabitCell
         cell.configure(with: viewModel.models[indexPath.item])
+        cell.subscribeOnPanAction {
+            collectionView.visibleCells.forEach {
+                guard let visibleCell = $0 as? UserHabitCell, cell != visibleCell else { return }
+
+                visibleCell.reset()
+            }
+        }
 
         return cell
     }
@@ -137,7 +151,7 @@ extension HabitListController: UICollectionViewDelegateFlowLayout {
             withReuseIdentifier: "UserHabitListHeaderView",
             for: indexPath
         ) as! UserHabitListHeaderView
-        view.configure(text: "Exercises")
+        view.configure(text: L10n.Habit.List.header)
 
         return view
     }
