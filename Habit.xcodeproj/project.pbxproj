@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5525588B2A23A7C500E3C740 /* NSArrayToStringArrayTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5525588A2A23A7C500E3C740 /* NSArrayToStringArrayTransformer.swift */; };
+		5525588E2A247C6800E3C740 /* Habit.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 5525588C2A247C6700E3C740 /* Habit.xcdatamodeld */; };
 		553C1B382A1FEA0100FC17B4 /* UserHabitListHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 553C1B372A1FEA0100FC17B4 /* UserHabitListHeaderView.swift */; };
 		55D844BA2A18C5BF0074032A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D844B92A18C5BF0074032A /* AppDelegate.swift */; };
 		55D844BC2A18C5BF0074032A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D844BB2A18C5BF0074032A /* SceneDelegate.swift */; };
-		55D844C42A18C5C00074032A /* Habit.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 55D844C22A18C5C00074032A /* Habit.xcdatamodeld */; };
 		55D844C62A18C5C10074032A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55D844C52A18C5C10074032A /* Assets.xcassets */; };
 		55D844C92A18C5C10074032A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 55D844C72A18C5C10074032A /* LaunchScreen.storyboard */; };
 		55D844D42A18C5C20074032A /* HabitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D844D32A18C5C20074032A /* HabitTests.swift */; };
@@ -64,11 +65,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5525588A2A23A7C500E3C740 /* NSArrayToStringArrayTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSArrayToStringArrayTransformer.swift; sourceTree = "<group>"; };
+		5525588D2A247C6700E3C740 /* Habit.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Habit.xcdatamodel; sourceTree = "<group>"; };
 		553C1B372A1FEA0100FC17B4 /* UserHabitListHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserHabitListHeaderView.swift; sourceTree = "<group>"; };
 		55D844B62A18C5BF0074032A /* Habit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Habit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55D844B92A18C5BF0074032A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		55D844BB2A18C5BF0074032A /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		55D844C32A18C5C00074032A /* Habit.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Habit.xcdatamodel; sourceTree = "<group>"; };
 		55D844C52A18C5C10074032A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		55D844CA2A18C5C10074032A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		55D844CF2A18C5C20074032A /* HabitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HabitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -132,6 +134,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		552558892A23A7BE00E3C740 /* CoreData */ = {
+			isa = PBXGroup;
+			children = (
+				5525588A2A23A7C500E3C740 /* NSArrayToStringArrayTransformer.swift */,
+			);
+			path = CoreData;
+			sourceTree = "<group>";
+		};
 		55D844AD2A18C5BF0074032A = {
 			isa = PBXGroup;
 			children = (
@@ -169,7 +179,7 @@
 				55D844C52A18C5C10074032A /* Assets.xcassets */,
 				55D844C72A18C5C10074032A /* LaunchScreen.storyboard */,
 				55D844CA2A18C5C10074032A /* Info.plist */,
-				55D844C22A18C5C00074032A /* Habit.xcdatamodeld */,
+				5525588C2A247C6700E3C740 /* Habit.xcdatamodeld */,
 			);
 			path = Habit;
 			sourceTree = "<group>";
@@ -299,6 +309,7 @@
 		55E57B582A1D10A70034C124 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				552558892A23A7BE00E3C740 /* CoreData */,
 				55E57B592A1D10AE0034C124 /* Date.swift */,
 			);
 			path = Extensions;
@@ -482,6 +493,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5525588E2A247C6800E3C740 /* Habit.xcdatamodeld in Sources */,
 				55D845282A18D4C30074032A /* UserHabitsService.swift in Sources */,
 				55D8451D2A18CF8B0074032A /* HabitEditingCoordinator.swift in Sources */,
 				55D845242A18D2570074032A /* Strings.swift in Sources */,
@@ -492,7 +504,7 @@
 				55D844BA2A18C5BF0074032A /* AppDelegate.swift in Sources */,
 				55E57B5C2A1D1AB80034C124 /* UserHabitsProgressService.swift in Sources */,
 				55D844F02A18C6650074032A /* AppCoordinator.swift in Sources */,
-				55D844C42A18C5C00074032A /* Habit.xcdatamodeld in Sources */,
+				5525588B2A23A7C500E3C740 /* NSArrayToStringArrayTransformer.swift in Sources */,
 				55E57B5E2A1D1AD50034C124 /* UserHabitProgress.swift in Sources */,
 				55D8452E2A18F5860074032A /* UserHabitCell.swift in Sources */,
 				55D844F72A18C6DE0074032A /* HabitListController.swift in Sources */,
@@ -890,12 +902,12 @@
 /* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
-		55D844C22A18C5C00074032A /* Habit.xcdatamodeld */ = {
+		5525588C2A247C6700E3C740 /* Habit.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				55D844C32A18C5C00074032A /* Habit.xcdatamodel */,
+				5525588D2A247C6700E3C740 /* Habit.xcdatamodel */,
 			);
-			currentVersion = 55D844C32A18C5C00074032A /* Habit.xcdatamodel */;
+			currentVersion = 5525588D2A247C6700E3C740 /* Habit.xcdatamodel */;
 			path = Habit.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;

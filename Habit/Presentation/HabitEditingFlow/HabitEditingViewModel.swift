@@ -34,7 +34,7 @@ final class HabitEditingViewModel {
         initialHabit: UserHabit?,
         routeListener: @escaping ((RouteKind) -> Void)
     ) {
-        model = initialHabit ?? .makeHabit()
+        model = initialHabit ?? userHabitsService.createNewHabit()
         self.userHabitsService = userHabitsService
         self.routeListener = { event in DispatchQueue.main.async { routeListener(event) } }
     }

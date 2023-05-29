@@ -12,9 +12,37 @@ import CoreData
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+
+        ValueTransformer.setValueTransformer(SecureUnarchiveFromDataTransformer(), forName: .init("SecureUnarchiveFromDataTransformer"))
+        let managedObjectContext = persistentContainer.viewContext
+//        let request = NSFetchRequest<TestEntity>(entityName: "TestEntity")
+//        let entities = try? managedObjectContext.fetch(request)
+//        entities?.forEach {
+//            print($0.id, $0.name, $0.value)
+//        }
+
+
+//        let entity = NSEntityDescription.entity(forEntityName: "TestEntity", in: managedObjectContext)!
+//        let newObject = NSManagedObject(entity: entity, insertInto: managedObjectContext)
+//        newObject.setValue("John Doe2", forKey: "name")
+//        newObject.setValue(31, forKey: "value")
+//        print(persistentContainer.persistentStoreDescriptions.first?.url)
+
+
+        // Step 3: Insert the object into the managed object context
+//        managedObjectContext.insert(newObject)
+//
+//        // Step 4: Save the changes
+//        do {
+//            try managedObjectContext.save()
+//            print("Object saved successfully!")
+//        } catch {
+//            print("Error saving object: \(error.localizedDescription)")
+//        }
+
+
         return true
     }
 

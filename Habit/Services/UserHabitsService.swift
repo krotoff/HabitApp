@@ -6,11 +6,14 @@
 //
 
 import Foundation.NSDate
+import CoreData
+import UIKit
 
 public protocol UserHabitsServiceType {
     var habits: [UserHabit] { get }
 
     func updateHabit(_ habit: UserHabit)
+    func createNewHabit() -> UserHabit
 }
 
 final class UserHabitsService: UserHabitsServiceType {
@@ -20,24 +23,28 @@ final class UserHabitsService: UserHabitsServiceType {
 
     // MARK: - Internal properties
 
-    var habits: [UserHabit] = [
-        .init(id: "some1", name: "Habit #1", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some2", name: "Habit #2", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some3", name: "Habit #3", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some4", name: "Habit #4", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some5", name: "Habit #5", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some6", name: "Habit #6", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some7", name: "Habit #7", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some8", name: "Habit #8", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-        .init(id: "some9", name: "Habit #9", frequency: .daily, timesForPeriod: [.init(hours: 6, minutes: 30)]),
-    ]
+    var habits: [UserHabit]
 
     // MARK: - Private properties
+
+    private let context: NSManagedObjectContext
 
     // MARK: - Init
 
     init() {
-
+        context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        habits = [
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+//            .init(context: context),
+        ]
     }
 
     // MARK: - Internal methods
@@ -48,6 +55,16 @@ final class UserHabitsService: UserHabitsServiceType {
         } else {
             habits.append(habit)
         }
+
+        do {
+            try habit.save(in: context)
+        } catch {
+            print("err", error)
+        }
+    }
+
+    func createNewHabit() -> UserHabit {
+        UserHabit(context: context)
     }
 
     // MARK: - Private methods

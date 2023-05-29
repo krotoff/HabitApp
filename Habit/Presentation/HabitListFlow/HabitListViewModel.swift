@@ -68,7 +68,8 @@ final class HabitListViewModel {
         let now = Date().midnight
 
         models = userHabitsService.habits.map { habit in
-            let nextDate = Date(timeInterval: habit.timesForPeriod[0].timeIntervalToAdd, since: now)
+//            let nextDate = Date(timeInterval: habit.timesForPeriod[0].timeIntervalToAdd, since: now)
+            let nextDate = Date()
             return .init(
                 id: habit.id,
                 name: habit.name,
