@@ -8,13 +8,13 @@
 import Foundation.NSUUID
 import CoreData
 
-public struct UserHabit {
+public struct UserHabit: Equatable {
 
     public enum FrequencyKind: String {
         case daily
     }
 
-    public struct Time {
+    public struct Time: Equatable {
         var hours: Int
         var minutes: Int
 
@@ -35,71 +35,47 @@ public struct UserHabit {
         }
     }
 
-    var id: String
+    var id: String = UUID().uuidString
     var name: String = L10n.Habit.Editing.Initial.name
     var frequency: FrequencyKind = .daily
     var timesForPeriod: [Time] = []
+    var createdAt: Date = Date()
 
-    private var managedObject: UserHabitMO
+    public var managedObjectID: NSManagedObjectID
 
-    init(context: NSManagedObjectContext) {
-        let object = UserHabitMO(context: context)
+    public init(managedObject: UserHabitMO) {
+        self.managedObjectID = managedObject.objectID
 
-        self.init(managed: object)
-    }
-
-    init(managed: UserHabitMO) {
-        managedObject = managed
-
-        if let id = managed.id {
+        if let id = managedObject.id {
             self.id = id.uuidString
-        } else {
-            let uuid = UUID()
-            managedObject.id = uuid
-            id = uuid.uuidString
         }
 
-        if let name = managed.name {
-            self.name = name
-        } else {
-            let name = L10n.Habit.Editing.Initial.name
-            managedObject.name = name
+        if let name = managedObject.name {
             self.name = name
         }
 
-        if let frequency = managed.frequency {
+        if let frequency = managedObject.frequency {
             self.frequency = FrequencyKind(rawValue: frequency) ?? .daily
-        } else {
-            frequency = .daily
-            managedObject.frequency = FrequencyKind.daily.rawValue
         }
 
-        if let timesForPeriod = managed.timesForPeriod as? [String] {
+        if let timesForPeriod = managedObject.timesForPeriod as? [String] {
             self.timesForPeriod = timesForPeriod.compactMap { Time(string: $0) }
-        } else {
-            self.timesForPeriod = []
-            managedObject.timesForPeriod = [String]() as NSObject
         }
 
-        if managed.createdAt == nil {
-            managedObject.createdAt = Date()
+        if let createdAt = managedObject.createdAt {
+            self.createdAt = createdAt
         }
-
-        print("created", managedObject)
     }
 }
 
-public extension UserHabit {
+extension UserHabit: CoreDataManagable {
+    public func updatedManagedObject(_ current: UserHabitMO) -> UserHabitMO {
+        current.id = UUID(uuidString: id)
+        current.name = name
+        current.frequency = frequency.rawValue
+        current.timesForPeriod = timesForPeriod.map(\.toString) as NSObject
+        current.createdAt = createdAt
 
-    func save(in context: NSManagedObjectContext) throws {
-        managedObject.name = name
-        managedObject.frequency = frequency.rawValue
-        managedObject.timesForPeriod = timesForPeriod.map(\.toString) as NSObject
-
-        if context.registeredObject(for: managedObject.objectID) == nil {
-            context.insert(managedObject)
-        }
-        print(self)
-        try context.save()
+        return current
     }
 }

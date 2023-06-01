@@ -56,6 +56,10 @@ final class HabitListViewModel {
     init(userHabitsService: UserHabitsServiceType, routeListener: @escaping ((RouteKind) -> Void)) {
         self.userHabitsService = userHabitsService
         self.routeListener = routeListener
+
+        self.userHabitsService.subscribeOnChanges(id: String(describing: Self.self)) { [weak self] in
+            self?.updateModels()
+        }
     }
 
     // MARK: - Internal methods
@@ -65,7 +69,7 @@ final class HabitListViewModel {
     }
 
     func updateModels() {
-        let now = Date().midnight
+        userHabitsService.fetchData()
 
         models = userHabitsService.habits.map { habit in
 //            let nextDate = Date(timeInterval: habit.timesForPeriod[0].timeIntervalToAdd, since: now)
@@ -80,6 +84,7 @@ final class HabitListViewModel {
                 deleteAction: { [weak self] in self?.tappedDelete(habitID: habit.id) }
             )
         }
+        
         logicListener?(.update)
     }
 
@@ -96,7 +101,9 @@ final class HabitListViewModel {
     private func tappedDelete(habitID: String) {
         guard let index = models.firstIndex(where: { $0.id == habitID }) else { return }
 
+        userHabitsService.deleteHabit(habitID)
         models.remove(at: index)
+        
         logicListener?(.deleteCell(IndexPath(item: index, section: 0)))
     }
 }
