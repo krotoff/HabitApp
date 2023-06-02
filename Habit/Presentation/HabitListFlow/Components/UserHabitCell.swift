@@ -106,6 +106,16 @@ final class UserHabitCell: BouncableCollectionCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+
+        nameLabel.text = nil
+        dateLabel.text = nil
+        deleteAction = nil
+        countLabel.text = nil
+        reset()
+    }
+
     // MARK: - Internal methods
 
     override func viewToScale() -> UIView { mainView }

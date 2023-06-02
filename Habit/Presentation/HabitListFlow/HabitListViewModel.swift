@@ -17,8 +17,7 @@ final class HabitListViewModel {
     }
 
     enum LogicEventKind {
-        case update
-        case deleteCell(IndexPath)
+        case update(CollectionChangeKind)
     }
 
     // MARK: - Private types
@@ -57,8 +56,11 @@ final class HabitListViewModel {
         self.userHabitsService = userHabitsService
         self.routeListener = routeListener
 
-        self.userHabitsService.subscribeOnChanges(id: String(describing: Self.self)) { [weak self] in
-            self?.updateModels()
+        userHabitsService.fetchData()
+        updateModels(with: .fullReload)
+
+        self.userHabitsService.subscribeOnChanges(id: String(describing: Self.self)) { [weak self] kind in
+            self?.updateModels(with: kind)
         }
     }
 
@@ -68,24 +70,24 @@ final class HabitListViewModel {
         self.logicListener = { event in DispatchQueue.main.async { logicListener?(event) } }
     }
 
-    func updateModels() {
-        userHabitsService.fetchData()
-
-        models = userHabitsService.habits.map { habit in
-//            let nextDate = Date(timeInterval: habit.timesForPeriod[0].timeIntervalToAdd, since: now)
-            let nextDate = Date()
-            return .init(
-                id: habit.id,
-                name: habit.name,
-                nextDate: L10n.Next.time(wholeDateFormatter.string(from: nextDate)),
-                passedCount: [0, 2, 10].randomElement()!,
-                totalCount: 10,
-                action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) },
-                deleteAction: { [weak self] in self?.tappedDelete(habitID: habit.id) }
-            )
-        }
+    func updateModels(with kind: CollectionChangeKind) {
+        models = userHabitsService.habits
+            .sorted { $0.createdAt < $1.createdAt }
+            .map { habit in
+                //            let nextDate = Date(timeInterval: habit.timesForPeriod[0].timeIntervalToAdd, since: now)
+                let nextDate = Date()
+                return .init(
+                    id: habit.id,
+                    name: habit.name,
+                    nextDate: L10n.Next.time(wholeDateFormatter.string(from: nextDate)),
+                    passedCount: [0, 2, 10].randomElement()!,
+                    totalCount: 10,
+                    action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) },
+                    deleteAction: { [weak self] in self?.tappedDelete(habitID: habit.id) }
+                )
+            }
         
-        logicListener?(.update)
+        logicListener?(.update(kind))
     }
 
     func tappedAdding(sourceView: UIView) {
@@ -99,11 +101,6 @@ final class HabitListViewModel {
     }
 
     private func tappedDelete(habitID: String) {
-        guard let index = models.firstIndex(where: { $0.id == habitID }) else { return }
-
         userHabitsService.deleteHabit(habitID)
-        models.remove(at: index)
-        
-        logicListener?(.deleteCell(IndexPath(item: index, section: 0)))
     }
 }

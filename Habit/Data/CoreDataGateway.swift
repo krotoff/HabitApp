@@ -7,6 +7,17 @@
 
 import Foundation
 import CoreData
+import UIKit
+
+public enum CollectionChangeKind {
+    case insert(IndexPath)
+    case delete(IndexPath)
+    case update(IndexPath)
+    case move(from: IndexPath, to: IndexPath)
+    case fullReload
+}
+
+public protocol CoreDataFetchManagable: NSManagedObject, NSFetchRequestResult {}
 
 public protocol CoreDataManagable {
     associatedtype ManagedObjectType: NSManagedObject
@@ -23,19 +34,20 @@ public protocol CoreDataGatewayType {
     func createObject<ObjectType: CoreDataManagable>() -> ObjectType
     func saveObject<ObjectType: CoreDataManagable>(_ object: ObjectType)
     func deleteObject<ObjectType: CoreDataManagable>(_ object: ObjectType)
-    func subscribeOnChanges(id: String, completion: (() -> Void)?)
-    func unsubscribeFromChanges(id: String)
+    func createFetchResultsController<ObjectType: NSManagedObject>(
+        sortDescriptors: [NSSortDescriptor]
+    ) -> NSFetchedResultsController<ObjectType>
 }
 
 public extension NSManagedObject {
     static var entityName: String { String(describing: Self.self) }
 }
 
-final class CoreDataGateway: CoreDataGatewayType {
+final class CoreDataGateway: NSObject, CoreDataGatewayType {
 
     // MARK: - Private properties
 
-    private lazy var persistentContainer: NSPersistentContainer = {
+    private let persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "Habit")
         container.loadPersistentStores { (storeDescription, error) in
             if let error = error as NSError? {
@@ -45,19 +57,17 @@ final class CoreDataGateway: CoreDataGatewayType {
 
         return container
     }()
+
     private var context: NSManagedObjectContext { persistentContainer.viewContext }
-    private var subscribes = [String: (() -> Void)?]()
 
     // MARK: - Init
 
-    init() {
-        ValueTransformer.setValueTransformer(SecureUnarchiveFromDataTransformer(), forName: .init("SecureUnarchiveFromDataTransformer"))
+    override init() {
+        super.init()
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(managedObjectContextObjectsDidChange),
-            name: .NSManagedObjectContextObjectsDidChange,
-            object: persistentContainer.viewContext
+        ValueTransformer.setValueTransformer(
+            SecureUnarchiveFromDataTransformer(),
+            forName: .init("SecureUnarchiveFromDataTransformer")
         )
     }
 
@@ -76,7 +86,6 @@ final class CoreDataGateway: CoreDataGatewayType {
     }
 
     func createObject<ObjectType: CoreDataManagable>() -> ObjectType {
-        print(#function)
         var managed = ObjectType.ManagedObjectType(context: persistentContainer.viewContext)
         let managable = ObjectType(managedObject: managed)
         managed = managable.updatedManagedObject(managed)
@@ -85,7 +94,6 @@ final class CoreDataGateway: CoreDataGatewayType {
     }
 
     func saveObject<ObjectType: CoreDataManagable>(_ object: ObjectType) {
-        print(#function)
         guard var managed = context.object(with: object.managedObjectID) as? ObjectType.ManagedObjectType else { return }
 
         managed = object.updatedManagedObject(managed)
@@ -93,66 +101,36 @@ final class CoreDataGateway: CoreDataGatewayType {
     }
 
     func deleteObject<ObjectType: CoreDataManagable>(_ object: ObjectType) {
-        print(#function)
         context.delete(context.object(with: object.managedObjectID))
         saveContext()
     }
 
-    func subscribeOnChanges(id: String, completion: (() -> Void)?) {
-        subscribes[id] = completion
-    }
+    func createFetchResultsController<ObjectType: NSManagedObject>(
+        sortDescriptors: [NSSortDescriptor]
+    ) -> NSFetchedResultsController<ObjectType> {
+        let request = ObjectType.fetchRequest() as! NSFetchRequest<ObjectType>
+        request.sortDescriptors = sortDescriptors
 
-    func unsubscribeFromChanges(id: String) {
-        subscribes[id] = nil
+        let controller = NSFetchedResultsController(
+            fetchRequest: request,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+
+        return controller
     }
 
     // MARK: - Private methods
 
-    func someShit() {
-        
-//        let managedObjectContext = persistentContainer.viewContext
-//        let request = NSFetchRequest<TestEntity>(entityName: "TestEntity")
-//        let entities = try? managedObjectContext.fetch(request)
-//        entities?.forEach {
-//            print($0.id, $0.name, $0.value)
-//        }
-
-
-//        let entity = NSEntityDescription.entity(forEntityName: "TestEntity", in: managedObjectContext)!
-//        let newObject = NSManagedObject(entity: entity, insertInto: managedObjectContext)
-//        newObject.setValue("John Doe2", forKey: "name")
-//        newObject.setValue(31, forKey: "value")
-//        print(persistentContainer.persistentStoreDescriptions.first?.url)
-
-
-        // Step 3: Insert the object into the managed object context
-//        managedObjectContext.insert(newObject)
-//
-//        // Step 4: Save the changes
-//        do {
-//            try managedObjectContext.save()
-//            print("Object saved successfully!")
-//        } catch {
-//            print("Error saving object: \(error.localizedDescription)")
-//        }
-    }
-
-    func saveContext () {
-        print(#function)
+    private func saveContext () {
         guard context.hasChanges else { return }
 
         do {
             try context.save()
         } catch {
-            // Replace this implementation with code to handle the error appropriately.
-            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
             let nserror = error as NSError
-            fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+            print("Unresolved error \(nserror), \(nserror.userInfo)")
         }
-    }
-
-    @objc private func managedObjectContextObjectsDidChange() {
-        print(#function)
-        subscribes.values.forEach { $0?() }
     }
 }

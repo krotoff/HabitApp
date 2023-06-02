@@ -33,14 +33,7 @@ final class HabitListController: CoordinatableViewController {
 
         super.init(nibName: nil, bundle: nil)
 
-        self.viewModel.subscribeForEvents { [weak self] event in
-            switch event {
-            case .update:
-                self?.collectionView.reloadData()
-            case let .deleteCell(indexPath):
-                self?.collectionView.deleteItems(at: [indexPath])
-            }
-        }
+        self.viewModel.subscribeForEvents { [weak self] in self?.handleEvent($0) }
     }
 
     required init?(coder: NSCoder) {
@@ -53,17 +46,13 @@ final class HabitListController: CoordinatableViewController {
         setupUI()
     }
 
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        viewModel.updateModels()
-    }
-
     // MARK: - Private methods
 
     private func setupUI() {
         [collectionView, addButton].forEach(view.addSubview)
 
+        collectionView.bounces = true
+        collectionView.bouncesZoom = true
         collectionView.contentInset = .init(top: 16, left: 16, bottom: 16, right: 16)
         collectionView.contentInsetAdjustmentBehavior = .always
         collectionView.showsVerticalScrollIndicator = false
@@ -103,6 +92,24 @@ final class HabitListController: CoordinatableViewController {
     @objc private func tappedAdd() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         viewModel.tappedAdding(sourceView: addButton)
+    }
+
+    private func handleEvent(_ event: HabitListViewModel.LogicEventKind) {
+        switch event {
+        case let .update(kind):
+            switch kind {
+            case .insert(let indexPath):
+                collectionView.insertItems(at: [indexPath])
+            case .delete(let indexPath):
+                collectionView.deleteItems(at: [indexPath])
+            case .update(let indexPath):
+                collectionView.reloadItems(at: [indexPath])
+            case .move(let from, let to):
+                collectionView.moveItem(at: from, to: to)
+            case .fullReload:
+                collectionView.reloadData()
+            }
+        }
     }
 }
 

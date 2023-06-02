@@ -16,11 +16,11 @@ public protocol UserHabitsServiceType {
     func updateHabit(_ habit: UserHabit)
     func createNewHabit() -> UserHabit
     func deleteHabit(_ habitID: String)
-    func subscribeOnChanges(id: String, completion: (() -> Void)?)
+    func subscribeOnChanges(id: String, completion: ((CollectionChangeKind) -> Void)?)
     func unsubscribeFromChanges(id: String)
 }
 
-final class UserHabitsService: UserHabitsServiceType {
+final class UserHabitsService: NSObject, UserHabitsServiceType {
 
     // MARK: - Internal properties
 
@@ -29,22 +29,31 @@ final class UserHabitsService: UserHabitsServiceType {
     // MARK: - Private properties
 
     private let dataGateway: CoreDataGatewayType
-    private var subscribes = [String: (() -> Void)?]()
+    private var subscribes = [String: ((CollectionChangeKind) -> Void)?]()
+    private let fetchController: NSFetchedResultsController<UserHabit.ManagedObjectType>
 
     // MARK: - Init
 
     init(dataGateway: CoreDataGatewayType) {
         self.dataGateway = dataGateway
+        fetchController = dataGateway.createFetchResultsController(
+            sortDescriptors: [.init(key: #keyPath(UserHabit.ManagedObjectType.createdAt), ascending: true)]
+        )
 
-        self.dataGateway.subscribeOnChanges(id: String(describing: Self.self)) { [weak self] in
-            self?.handleDataUpdates()
-        }
+        super.init()
+
+        fetchController.delegate = self
     }
 
     // MARK: - Internal methods
 
     func fetchData() {
-        habits = dataGateway.fetchData()
+        do {
+            try fetchController.performFetch()
+            habits = fetchController.fetchedObjects?.map(UserHabit.init) ?? []
+        } catch {
+            print(error)
+        }
     }
 
     func updateHabit(_ habit: UserHabit) {
@@ -52,20 +61,16 @@ final class UserHabitsService: UserHabitsServiceType {
     }
 
     func createNewHabit() -> UserHabit {
-        let habit: UserHabit = dataGateway.createObject()
-        habits.append(habit)
-
-        return habit
+        dataGateway.createObject()
     }
 
     func deleteHabit(_ habitID: String) {
         guard let index = habits.firstIndex(where: { $0.id == habitID }) else { return }
 
         dataGateway.deleteObject(habits[index])
-        habits.remove(at: index)
     }
 
-    func subscribeOnChanges(id: String, completion: (() -> Void)?) {
+    func subscribeOnChanges(id: String, completion: ((CollectionChangeKind) -> Void)?) {
         subscribes[id] = completion
     }
 
@@ -74,13 +79,21 @@ final class UserHabitsService: UserHabitsServiceType {
     }
 
     // MARK: - Private methods
+}
 
-    private func handleDataUpdates() {
-        let oldHabits = habits
-        fetchData()
+extension UserHabitsService: NSFetchedResultsControllerDelegate {
 
-        if oldHabits != habits {
-            subscribes.values.forEach { $0?() }
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        habits = fetchController.fetchedObjects?.map(UserHabit.init) ?? []
+        switch type {
+        case .insert:
+            subscribes.values.forEach { $0?(.insert(newIndexPath!)) }
+        case .delete:
+            subscribes.values.forEach { $0?(.delete(indexPath!)) }
+        case .update:
+            subscribes.values.forEach { $0?(.update(indexPath!)) }
+        case .move:
+            subscribes.values.forEach { $0?(.move(from: indexPath!, to: newIndexPath!)) }
         }
     }
 }
