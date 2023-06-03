@@ -197,13 +197,16 @@ final class UserHabitCell: BouncableCollectionCell {
     }
 
     @objc private func handlePan(_ sender: UIPanGestureRecognizer) {
-        switchButtonsVisiblity(isVisible: sender.velocity(in: self).x < 0)
+        switchButtonsVisiblity(isVisible: sender.velocity(in: self).x < 0, isTriggeredByItself: true)
         cellWasPanned?()
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
-    private func switchButtonsVisiblity(isVisible: Bool) {
+    private func switchButtonsVisiblity(isVisible: Bool, isTriggeredByItself: Bool = false) {
         guard isVisible == rightButton.isHidden else { return }
+
+        if isTriggeredByItself {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
 
         UIView.animate(
             withDuration: 0.3,

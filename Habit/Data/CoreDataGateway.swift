@@ -37,6 +37,7 @@ public protocol CoreDataGatewayType {
     func createFetchResultsController<ObjectType: NSManagedObject>(
         sortDescriptors: [NSSortDescriptor]
     ) -> NSFetchedResultsController<ObjectType>
+    func saveChangesIfNeeded()
 }
 
 public extension NSManagedObject {
@@ -97,12 +98,10 @@ final class CoreDataGateway: NSObject, CoreDataGatewayType {
         guard var managed = context.object(with: object.managedObjectID) as? ObjectType.ManagedObjectType else { return }
 
         managed = object.updatedManagedObject(managed)
-        saveContext()
     }
 
     func deleteObject<ObjectType: CoreDataManagable>(_ object: ObjectType) {
         context.delete(context.object(with: object.managedObjectID))
-        saveContext()
     }
 
     func createFetchResultsController<ObjectType: NSManagedObject>(
@@ -121,16 +120,19 @@ final class CoreDataGateway: NSObject, CoreDataGatewayType {
         return controller
     }
 
-    // MARK: - Private methods
-
-    private func saveContext () {
+    func saveChangesIfNeeded() {
+        print(#function)
         guard context.hasChanges else { return }
 
+        print(#function, "start saving")
         do {
             try context.save()
         } catch {
             let nserror = error as NSError
-            print("Unresolved error \(nserror), \(nserror.userInfo)")
+            print("#ERR: Unresolved error \(nserror), \(nserror.localizedDescription), \(nserror.userInfo)")
         }
     }
+
+    // MARK: - Private methods
+
 }

@@ -46,6 +46,12 @@ final class HabitListController: CoordinatableViewController {
         setupUI()
     }
 
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+
+        collectionViewLayout.invalidateLayout()
+    }
+
     // MARK: - Private methods
 
     private func setupUI() {
@@ -67,6 +73,7 @@ final class HabitListController: CoordinatableViewController {
         )
         collectionView.canCancelContentTouches = false
         collectionViewLayout.minimumLineSpacing = 16
+        collectionViewLayout.minimumInteritemSpacing = 16
 
         addButton.contentMode = .scaleAspectFit
         addButton.setImage(Asset.Images.add.image, for: .normal)
@@ -143,7 +150,12 @@ extension HabitListController: UICollectionViewDelegateFlowLayout {
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        .init(width: collectionView.bounds.width - 32, height: 64)
+        let availableWidth = collectionView.bounds.width - collectionView.contentInset.left - collectionView.contentInset.right
+        if UIDevice.current.orientation.isLandscape {
+            return .init(width: (availableWidth - self.collectionViewLayout.minimumInteritemSpacing) / 2, height: 64)
+        } else {
+            return .init(width: availableWidth, height: 64)
+        }
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
