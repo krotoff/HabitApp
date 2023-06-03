@@ -83,6 +83,7 @@ final class HabitListViewModel {
                     passedCount: [0, 2, 10].randomElement()!,
                     totalCount: 10,
                     action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) },
+                    checkAction: nil,
                     deleteAction: { [weak self] in self?.tappedDelete(habitID: habit.id) }
                 )
             }

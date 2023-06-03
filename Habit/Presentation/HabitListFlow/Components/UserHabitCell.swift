@@ -21,10 +21,17 @@ final class UserHabitCell: BouncableCollectionCell {
         var passedCount: Int
         var totalCount: Int
         var action: ((UIView) -> Void)?
+        var checkAction: (() -> Void)?
         var deleteAction: (() -> Void)?
     }
 
     // MARK: - Private types
+
+    private enum SwipableCellStateKind: String, Equatable {
+        case left
+        case center
+        case right
+    }
 
     private struct Constants {
         static let labelInsetX: CGFloat = 16
@@ -55,7 +62,7 @@ final class UserHabitCell: BouncableCollectionCell {
 
     private let mainView = UIView()
     private lazy var mainStackView: UIStackView = {
-        let view = UIStackView(arrangedSubviews: [mainView, rightButton])
+        let view = UIStackView(arrangedSubviews: [leftButton, mainView, rightButton])
         view.axis = .horizontal
         view.distribution = .fill
         view.alignment = .fill
@@ -90,9 +97,16 @@ final class UserHabitCell: BouncableCollectionCell {
         return view
     }()
 
+    private let leftButton = BouncableButton()
     private let rightButton = BouncableButton()
+
+    private var state: SwipableCellStateKind = .center
+
     private var deleteAction: (() -> Void)?
+    private var checkAction: (() -> Void)?
     private var cellWasPanned: (() -> Void)?
+
+    private var isStateChanging = false
 
     // MARK: - Init
 
@@ -149,7 +163,7 @@ final class UserHabitCell: BouncableCollectionCell {
     }
 
     func reset() {
-        switchButtonsVisiblity(isVisible: false)
+        animateNewState(.center)
     }
 
     // MARK: - Private methods
@@ -159,20 +173,29 @@ final class UserHabitCell: BouncableCollectionCell {
         bounceScale = 0.98
 
         backgroundColor = .clear
-        [mainView, rightButton].forEach {
+
+        leftButton.backgroundColor = Asset.Colors.success.color
+        mainView.backgroundColor = Asset.Colors.secondary.color
+        rightButton.backgroundColor = Asset.Colors.failure.color
+
+        [leftButton, mainView, rightButton].forEach {
             $0.layer.shadowColor = UIColor.black.cgColor
             $0.layer.shadowOffset = .init(width: 0, height: 4)
             $0.layer.shadowRadius = 5
             $0.layer.shadowOpacity = defaultShadowOpacity
+            $0.layer.cornerRadius = 8
         }
 
-        mainView.layer.cornerRadius = 8
-        mainView.backgroundColor = Asset.Colors.secondary.color
+        [leftButton, rightButton].forEach {
+            $0.isHidden = true
+            $0.alpha = 0
+            $0.defaultColor = $0.backgroundColor!
+            $0.highlightedColor = $0.backgroundColor!
+            $0.defaultShadowOpacity = defaultShadowOpacity
+        }
 
-        rightButton.layer.cornerRadius = 8
-        rightButton.backgroundColor = Asset.Colors.failure.color
+        leftButton.setImage(Asset.Images.check.image, for: .normal)
         rightButton.setImage(Asset.Images.close.image, for: .normal)
-        rightButton.isHidden = true
 
         [mainStackView].forEach(addSubview)
         [infoStackView].forEach(mainView.addSubview)
@@ -186,9 +209,12 @@ final class UserHabitCell: BouncableCollectionCell {
                 bottom: Constants.labelInsetY,
                 right: Constants.labelInsetX
             ))
+        leftButton
+            .equalsHeightToWidth()
         rightButton
             .equalsHeightToWidth()
 
+        leftButton.addTarget(self, action: #selector(checkWasTapped), for: .touchUpInside)
         rightButton.addTarget(self, action: #selector(deleteWasTapped), for: .touchUpInside)
 
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
@@ -197,27 +223,67 @@ final class UserHabitCell: BouncableCollectionCell {
     }
 
     @objc private func handlePan(_ sender: UIPanGestureRecognizer) {
-        switchButtonsVisiblity(isVisible: sender.velocity(in: self).x < 0, isTriggeredByItself: true)
+        switchButtonsVisiblity(isLeftPan: sender.velocity(in: self).x < 0, isTriggeredByItself: true)
         cellWasPanned?()
     }
 
-    private func switchButtonsVisiblity(isVisible: Bool, isTriggeredByItself: Bool = false) {
-        guard isVisible == rightButton.isHidden else { return }
+    private func switchButtonsVisiblity(isLeftPan: Bool, isTriggeredByItself: Bool = false) {
+        var newState = state
+
+        switch (isLeftPan, state) {
+        case (false, .left), (true, .right):
+            break
+        case (false, .center):
+            newState = .left
+        case (false, .right), (true, .left):
+            newState = .center
+        case (true, .center):
+            newState = .right
+        }
+
+        guard newState != state, !isStateChanging else { return }
+
+        isStateChanging = true
 
         if isTriggeredByItself {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
 
+        animateNewState(newState)
+    }
+
+    private func animateNewState(_ newState: SwipableCellStateKind) {
         UIView.animate(
             withDuration: 0.3,
             delay: 0,
             options: [.curveEaseInOut],
-            animations: {
-                self.rightButton.alpha = isVisible ? 1 : 0
-                self.rightButton.isHidden = !isVisible
-                self.mainStackView.layoutIfNeeded()
+            animations: { self.applyNewState(newState) },
+            completion: { [weak self] finished in
+                guard finished else { return }
+
+                self?.isStateChanging = false
+                self?.state = newState
             }
         )
+    }
+
+    private func applyNewState(_ state: SwipableCellStateKind) {
+        if rightButton.isHidden != (state != .right) {
+            rightButton.alpha = state == .right ? 1 : 0
+            rightButton.isHidden = state != .right
+        }
+
+        if leftButton.isHidden != (state != .left) {
+            leftButton.alpha = state == .left ? 1 : 0
+            leftButton.isHidden = state != .left
+        }
+
+        mainStackView.layoutIfNeeded()
+    }
+
+    @objc private func checkWasTapped() {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        checkAction?()
     }
 
     @objc private func deleteWasTapped() {

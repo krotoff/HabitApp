@@ -118,6 +118,14 @@ final class HabitListController: CoordinatableViewController {
             }
         }
     }
+
+    private func resetCells(except cell: UserHabitCell?) {
+        collectionView.visibleCells.forEach {
+            guard let visibleCell = $0 as? UserHabitCell, cell != visibleCell else { return }
+
+            visibleCell.reset()
+        }
+    }
 }
 
 extension HabitListController: UICollectionViewDataSource {
@@ -132,12 +140,8 @@ extension HabitListController: UICollectionViewDataSource {
         let cell = collectionView
             .dequeueReusableCell(withReuseIdentifier: "UserHabitCell", for: indexPath) as! UserHabitCell
         cell.configure(with: viewModel.models[indexPath.item])
-        cell.subscribeOnPanAction {
-            collectionView.visibleCells.forEach {
-                guard let visibleCell = $0 as? UserHabitCell, cell != visibleCell else { return }
-
-                visibleCell.reset()
-            }
+        cell.subscribeOnPanAction { [weak self] in
+            self?.resetCells(except: cell)
         }
 
         return cell
@@ -160,6 +164,7 @@ extension HabitListController: UICollectionViewDelegateFlowLayout {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        resetCells(except: nil)
         let cell = collectionView.cellForItem(at: indexPath) as? UserHabitCell
         viewModel.models[indexPath.item].action?(cell!.viewToScale())
     }
