@@ -156,6 +156,10 @@ final class UserHabitCell: BouncableCollectionCell {
             )
         }
         countLabel.attributedText = attributedText
+
+        if isDone {
+            markAsCompleted()
+        }
     }
 
     func subscribeOnPanAction(_ completion: @escaping (() -> Void)) {
@@ -267,6 +271,13 @@ final class UserHabitCell: BouncableCollectionCell {
         )
     }
 
+    private func markAsCompleted() {
+        let attributeString: NSMutableAttributedString = NSMutableAttributedString(string: nameLabel.text!)
+        attributeString.addAttribute(.strikethroughStyle, value: 2, range: NSRange(location: 0, length: attributeString.length))
+        mainView.alpha = 0.8
+        nameLabel.attributedText = attributeString
+    }
+
     private func applyNewState(_ state: SwipableCellStateKind) {
         if rightButton.isHidden != (state != .right) {
             rightButton.alpha = state == .right ? 1 : 0
@@ -283,6 +294,7 @@ final class UserHabitCell: BouncableCollectionCell {
 
     @objc private func checkWasTapped() {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        reset()
         checkAction?()
     }
 

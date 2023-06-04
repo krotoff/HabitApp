@@ -80,7 +80,7 @@ final class HabitListViewModel {
                     id: habit.id,
                     name: habit.name,
                     nextDate: L10n.Next.time(wholeDateFormatter.string(from: nextDate)),
-                    passedCount: [0, 2, 10].randomElement()!,
+                    passedCount: [0, 5, 10].randomElement()!,
                     totalCount: 10,
                     action: { [weak self] view in self?.tappedEditing(sourceView: view, habit: habit) },
                     checkAction: nil,
