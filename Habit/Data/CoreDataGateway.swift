@@ -22,7 +22,7 @@ public protocol CoreDataFetchManagable: NSManagedObject, NSFetchRequestResult {}
 public protocol CoreDataManagable {
     associatedtype ManagedObjectType: NSManagedObject
 
-    var managedObjectID: NSManagedObjectID { get }
+    var managedObjectID: NSManagedObjectID? { get }
 
     init(managedObject: ManagedObjectType)
 
@@ -31,12 +31,13 @@ public protocol CoreDataManagable {
 
 public protocol CoreDataGatewayType {
     func fetchData<ObjectType: CoreDataManagable>() -> [ObjectType]
-    func createObject<ObjectType: CoreDataManagable>() -> ObjectType
     func saveObject<ObjectType: CoreDataManagable>(_ object: ObjectType)
     func deleteObject<ObjectType: CoreDataManagable>(_ object: ObjectType)
+
     func createFetchResultsController<ObjectType: NSManagedObject>(
         sortDescriptors: [NSSortDescriptor]
     ) -> NSFetchedResultsController<ObjectType>
+
     func saveChangesIfNeeded()
 }
 
@@ -86,22 +87,23 @@ final class CoreDataGateway: NSObject, CoreDataGatewayType {
         }
     }
 
-    func createObject<ObjectType: CoreDataManagable>() -> ObjectType {
-        var managed = ObjectType.ManagedObjectType(context: persistentContainer.viewContext)
-        let managable = ObjectType(managedObject: managed)
-        managed = managable.updatedManagedObject(managed)
-
-        return managable
-    }
-
     func saveObject<ObjectType: CoreDataManagable>(_ object: ObjectType) {
-        guard var managed = context.object(with: object.managedObjectID) as? ObjectType.ManagedObjectType else { return }
-
-        managed = object.updatedManagedObject(managed)
+        if
+            let id = object.managedObjectID,
+            var managed = context.object(with: id) as? ObjectType.ManagedObjectType
+        {
+            managed = object.updatedManagedObject(managed)
+        } else {
+            var managed = ObjectType.ManagedObjectType(context: persistentContainer.viewContext)
+            let managable = ObjectType(managedObject: managed)
+            managed = managable.updatedManagedObject(managed)
+        }
     }
 
     func deleteObject<ObjectType: CoreDataManagable>(_ object: ObjectType) {
-        context.delete(context.object(with: object.managedObjectID))
+        guard let id = object.managedObjectID else { return }
+
+        context.delete(context.object(with: id))
     }
 
     func createFetchResultsController<ObjectType: NSManagedObject>(

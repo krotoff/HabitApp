@@ -41,7 +41,9 @@ public struct UserHabit: Equatable {
     var timesForPeriod: [Time] = []
     var createdAt: Date = Date()
 
-    public var managedObjectID: NSManagedObjectID
+    public var managedObjectID: NSManagedObjectID?
+
+    public static let initial = UserHabit()
 
     public init(managedObject: UserHabitMO) {
         self.managedObjectID = managedObject.objectID
@@ -66,6 +68,8 @@ public struct UserHabit: Equatable {
             self.createdAt = createdAt
         }
     }
+
+    private init() {}
 }
 
 extension UserHabit: CoreDataManagable {

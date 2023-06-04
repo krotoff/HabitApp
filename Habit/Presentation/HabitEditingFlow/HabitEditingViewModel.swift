@@ -42,12 +42,12 @@ final class HabitEditingViewModel {
     // MARK: - Internal methods
 
     func tappedClose() {
+        userHabitsService.updateHabit(model)
         routeListener(.close)
     }
 
     func updateName(_ name: String) {
         model.name = name
-        userHabitsService.updateHabit(model)
     }
 
     // MARK: - Private methods

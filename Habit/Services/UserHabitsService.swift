@@ -60,9 +60,7 @@ final class UserHabitsService: NSObject, UserHabitsServiceType {
         dataGateway.saveObject(habit)
     }
 
-    func createNewHabit() -> UserHabit {
-        dataGateway.createObject()
-    }
+    func createNewHabit() -> UserHabit { .initial }
 
     func deleteHabit(_ habitID: String) {
         guard let index = habits.firstIndex(where: { $0.id == habitID }) else { return }
