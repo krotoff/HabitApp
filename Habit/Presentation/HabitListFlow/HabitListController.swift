@@ -57,8 +57,6 @@ final class HabitListController: CoordinatableViewController {
     private func setupUI() {
         [collectionView, addButton].forEach(view.addSubview)
 
-        collectionView.bounces = true
-        collectionView.bouncesZoom = true
         collectionView.contentInset = .init(top: 16, left: 16, bottom: 16, right: 16)
         collectionView.contentInsetAdjustmentBehavior = .always
         collectionView.showsVerticalScrollIndicator = false
@@ -175,12 +173,12 @@ extension HabitListController: UICollectionViewDelegateFlowLayout {
             withReuseIdentifier: "UserHabitListHeaderView",
             for: indexPath
         ) as! UserHabitListHeaderView
-        view.configure(text: L10n.Habit.List.header)
+        view.configure(with: viewModel.headerModel)
 
         return view
     }
 
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        .init(width: collectionView.bounds.width - 32, height: 64)
+        .init(width: collectionView.bounds.width, height: 72)
     }
 }

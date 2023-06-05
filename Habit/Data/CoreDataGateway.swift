@@ -123,10 +123,8 @@ final class CoreDataGateway: NSObject, CoreDataGatewayType {
     }
 
     func saveChangesIfNeeded() {
-        print(#function)
         guard context.hasChanges else { return }
 
-        print(#function, "start saving")
         do {
             try context.save()
         } catch {
