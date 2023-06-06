@@ -9,9 +9,9 @@ import Foundation.NSDateFormatter
 
 public extension DateFormatter {
 
-    static let weekday: DateFormatter = {
+    static let weekdayShort: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
+        formatter.dateFormat = "EE"
 
         return formatter
     }()

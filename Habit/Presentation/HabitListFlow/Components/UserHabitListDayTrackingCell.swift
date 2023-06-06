@@ -74,7 +74,7 @@ final class UserHabitListDayTrackingCell: UICollectionViewCell {
         return view
     }()
 
-    private let formatter = DateFormatter.weekday
+    private let formatter = DateFormatter.weekdayShort
 
     // MARK: - Init
 

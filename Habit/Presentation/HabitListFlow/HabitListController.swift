@@ -57,7 +57,6 @@ final class HabitListController: CoordinatableViewController {
     private func setupUI() {
         [collectionView, addButton].forEach(view.addSubview)
 
-        collectionView.contentInset = .init(top: 16, left: 16, bottom: 16, right: 16)
         collectionView.contentInsetAdjustmentBehavior = .always
         collectionView.showsVerticalScrollIndicator = false
         collectionView.backgroundColor = Asset.Colors.background.color
@@ -152,7 +151,7 @@ extension HabitListController: UICollectionViewDelegateFlowLayout {
         layout collectionViewLayout: UICollectionViewLayout,
         sizeForItemAt indexPath: IndexPath
     ) -> CGSize {
-        let availableWidth = collectionView.bounds.width - collectionView.contentInset.left - collectionView.contentInset.right
+        let availableWidth = collectionView.bounds.width - 32
         if UIDevice.current.orientation.isLandscape {
             return .init(width: (availableWidth - self.collectionViewLayout.minimumInteritemSpacing) / 2, height: 64)
         } else {
